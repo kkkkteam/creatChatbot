@@ -25,6 +25,7 @@ class BotmanController extends Controller
             foreach ($array as $key => $value) {
                 if ($value > $temp_score){
                     $intention_highest = $key;
+                    $temp_score = $value ;
                 }
             }
             $intention = json_encode($array);
@@ -72,44 +73,43 @@ class BotmanController extends Controller
 
         $content = "Classify the intention of the speaker from the conversation: ".$message." into categories(select 3 with possibility in percentages and display in JSON format）: chating , asking solution, wanting coupon, need recommendation, need information, need encourage, management, need more detail to action. And then give a suitable reply to the conversation to fulfill the intention of the highest chance in same language of the conversation.";
 
-        $msg["role"] = "assistant";
-        $msg["content"] = $content;
-        $json = json_encode($msg);
-
-        $send["model"] = "gpt-3.5-turbo";
-        $send["messages"] = $json ;
-        $send["temperature"] = 0.1;
-        $send["max_tokens"] = 2000;
-        $send["top_p"] = 1.0;
-        $send["frequency_penalty"] = 0.5; 
-        $send["presence_penalty"] = 0.5;
-        $packget = json_encode($send);
-
+        $msg = array(
+            "role" => "assistant",
+            "content" => $content
+        );
+        $json = "[".json_encode($msg)."]";
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://api.openai.com/v1/chat/completions',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => $send,
-        CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json',
-            'Authorization: Bearer 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'
-        ),
-        ));
+            CURLOPT_URL => 'https://api.openai.com/v1/chat/completions',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS =>'{
+                "model": "gpt-3.5-turbo",
+                "messages": $json,
+                "temperature": 0,
+                "max_tokens": 60,
+                "top_p": 1.0,
+                "frequency_penalty": 0.5,
+                "presence_penalty": 0.0
+            }',
+            CURLOPT_HTTPHEADER => array(
+              'Content-Type: application/json',
+              'Authorization: Bearer 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'
+            ),
+          ));
 
-        $temp = curl_exec($curl);
-dd($temp);
-        $json = stripslashes($temp);
-        $intention = json_decode($json, true);
-        // extract the intention from $response
+        $result = curl_exec($curl);
+dd($result);
+        // $json = stripslashes($temp);
+        $array = json_decode($result, true);
+        $intention = json_decode($array["choices"][0]["message"]["content"], true);
         
-
         return $intention;
         
     }

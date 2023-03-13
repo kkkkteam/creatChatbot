@@ -72,20 +72,14 @@ class BotmanController extends Controller
     public function intentionClassification($message){
 
         $open_ai = new OpenAi(config('app.openai_api_key'));
-
-        $content = "Classify the intention of the speaker from the conversation: ".$message." into categories(select 3 with possibility in percentages and display in JSON format）: chating , asking solution, wanting coupon, need recommendation, need information, need encourage, management, need more detail to action. And then give a suitable reply to the conversation to fulfill the intention of the highest chance in same language of the conversation.";
-
-        // $msg = array(
-        //     "role" => "assistant",
-        //     "content" => $content
-        // );
-        // $json = "[".json_encode($msg)."]";
-
+        $content = "Classify the intention of the speaker from the conversation: ".$message." into categories (select 3 with higher possibility in percentages and display in JSON format）: chating, asking solution, wanting coupon, need recommendation, need information, need encourage, management, need more detail to action";
         $complete = $open_ai->chat([
 			'model' => 'gpt-3.5-turbo',
 			'messages' => [
-                "role" => "assistant",
-                "content" => $content,
+                [
+                    "role" => "assistant",
+                    "content" => $content,
+                ]
             ],
 			'temperature' => 0.2,
 			'max_tokens' => 3000,
@@ -94,25 +88,12 @@ class BotmanController extends Controller
 		]);
 
 		$intention = [];
-
-		// if ($complete){
-		// $json = json_decode($complete, true);
-		// dd($json['choices'][0]['text'], $json);
-		// if (isset($json['choices'][0]['text']) ){
-		// 	$chat_02 = $json['choices'][0]['text'];
-		// 	$chat_01 = trim($chat_02, '"');
-		// 	$chat = substr($chat_01, 2);
-		// }
-        // $json = stripslashes($temp);
-dd($complete);
         $array = json_decode($complete, true);
         if (isset($array["choices"][0]["message"]["content"]) ){
-            $chat_01 = $array["choices"][0]["message"]["content"];
-            $chat_02 = trim($chat_01, '"');
-            $intention = trim($chat_02, '\n');
+            $result = $array["choices"][0]["message"]["content"];
+            $intention = str_replace("\n", "", $result);
         }
-dd($intention);
-        return $intention;
-        
+
+        return json_decode($intention, true);
     }
 }

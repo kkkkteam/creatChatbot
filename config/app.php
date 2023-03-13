@@ -123,6 +123,9 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    // Open ai Key
+    'openai_api_key' => "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",
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

@@ -71,45 +71,47 @@ class BotmanController extends Controller
 
     public function intentionClassification($message){
 
+        $open_ai = new OpenAi(config('app.openai_api_key'));
+
         $content = "Classify the intention of the speaker from the conversation: ".$message." into categories(select 3 with possibility in percentages and display in JSON format）: chating , asking solution, wanting coupon, need recommendation, need information, need encourage, management, need more detail to action. And then give a suitable reply to the conversation to fulfill the intention of the highest chance in same language of the conversation.";
 
-        $msg = array(
-            "role" => "assistant",
-            "content" => $content
-        );
-        $json = "[".json_encode($msg)."]";
-        $curl = curl_init();
+        // $msg = array(
+        //     "role" => "assistant",
+        //     "content" => $content
+        // );
+        // $json = "[".json_encode($msg)."]";
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://api.openai.com/v1/chat/completions',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>'{
-                "model": "gpt-3.5-turbo",
-                "messages": $json,
-                "temperature": 0,
-                "max_tokens": 60,
-                "top_p": 1.0,
-                "frequency_penalty": 0.5,
-                "presence_penalty": 0.0
-            }',
-            CURLOPT_HTTPHEADER => array(
-              'Content-Type: application/json',
-              'Authorization: Bearer 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'
-            ),
-          ));
+        $complete = $open_ai->chat([
+			'model' => 'gpt-3.5-turbo',
+			'messages' => [
+                "role" => "assistant",
+                "content" => $content,
+            ],
+			'temperature' => 0.2,
+			'max_tokens' => 3000,
+            "frequency_penalty" => 0.5,
+            "presence_penalty" => 0.0,
+		]);
 
-        $result = curl_exec($curl);
-dd($result);
+		$intention = [];
+
+		// if ($complete){
+		// $json = json_decode($complete, true);
+		// dd($json['choices'][0]['text'], $json);
+		// if (isset($json['choices'][0]['text']) ){
+		// 	$chat_02 = $json['choices'][0]['text'];
+		// 	$chat_01 = trim($chat_02, '"');
+		// 	$chat = substr($chat_01, 2);
+		// }
         // $json = stripslashes($temp);
-        $array = json_decode($result, true);
-        $intention = json_decode($array["choices"][0]["message"]["content"], true);
-        
+dd($complete);
+        $array = json_decode($complete, true);
+        if (isset($array["choices"][0]["message"]["content"]) ){
+            $chat_01 = $array["choices"][0]["message"]["content"];
+            $chat_02 = trim($chat_01, '"');
+            $intention = trim($chat_02, '\n');
+        }
+dd($intention);
         return $intention;
         
     }

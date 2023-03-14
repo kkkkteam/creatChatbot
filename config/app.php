@@ -124,7 +124,7 @@ return [
     'cipher' => 'AES-256-CBC',
 
     // Open ai Key
-    'openai_api_key' => "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",
+    'openai_api_key' => "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",
 
     /*
     |--------------------------------------------------------------------------
